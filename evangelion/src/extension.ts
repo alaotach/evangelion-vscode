@@ -11,6 +11,35 @@ export function activate(ctx: vscode.ExtensionContext) {
 	SBI.text = '▸ MAGI: ALL UNITS NOMINAL';
 	SBI.color = '#00FFFF';
 	SBI.show();
+	const update = () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			SBI.text = '// Standby';
+			SBI.color = '#00FFFF';
+			return;
+		}
+		const diag = vscode.languages.getDiagnostics(editor.document.uri);
+		const errs = diag.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+		const warns = diag.filter(d => d.severity === vscode.DiagnosticSeverity.Warning);
+		if (errs.length > 0) {
+            SBI.text = `$(error) ANGEL DETECTED — ${errs.length} ERROR${errs.length > 1 ? 'S' : ''}`;
+            SBI.color = '#FF2200';
+        } else if (warns.length > 0) {
+            SBI.text = `$(warning) ALERT LVL YELLOW — ${warns.length} WARNING${warns.length > 1 ? 'S' : ''}`;
+            SBI.color = '#FFAA00';
+        } else {
+            SBI.text = '// MAGI SYSTEM: NOMINAL';
+            SBI.color = '#00FFFF';
+        }
+	}
+	vscode.languages.onDidChangeDiagnostics(() => update());
+	vscode.window.onDidChangeActiveTextEditor(() => update());
+	vscode.workspace.onDidSaveTextDocument((doc) => {
+		const fileName = doc.fileName.split(/[\\/]/).pop();
+		SBI.text = `$(check) FILE SECURED — ${fileName}`;
+		SBI.color = '#00FF88';
+		setTimeout(() => update(), 2000);
+	});
 	ctx.subscriptions.push(SBI);
 }
 

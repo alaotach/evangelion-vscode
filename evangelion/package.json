@@ -19,6 +19,13 @@
         "command": "evangelion.helloWorld",
         "title": "Hello World"
       }
+    ],
+    "themes": [
+      {
+        "label": "NERV Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/nerv-dark.json"
+      }
     ]
   },
   "scripts": {
