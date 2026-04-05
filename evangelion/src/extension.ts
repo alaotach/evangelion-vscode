@@ -54,7 +54,36 @@ class MagiPanel implements vscode.WebviewViewProvider {
 	resolveWebviewView(webviewView: vscode.WebviewView) {
 		this._view = webviewView;
 		webviewView.webview.options = {enableScripts: true};
-		webviewView.webview.html = '<h1>NERV</h1>';
+		webviewView.webview.html = `<!DOCTYPE html>
+		<html>
+		<head>
+			<style>
+			body {
+				background-color: #000d0d;
+				color: #00ff88;
+				font-family: 'Courier New', monospace;
+				margin: 0;
+				padding: 10px;
+			}
+			.clock {
+				font-size: 22px;
+				text-align: center;
+				letter-spacing: 4px;
+				text-shadow: 0 0 10px #00ff88;
+				margin: 10px 0;
+			}
+			</style>
+		</head>
+		<body>
+		<div class="clock" id="clock">00:00:00</div>
+		<script>
+			setInterval(() => {
+			document.getElementById('clock').textContent =
+				new Date().toLocaleTimeString('en-US', { hour12: false });
+			}, 1000);
+		</script>
+		</body>
+		</html>`;
 	}
 }
 
