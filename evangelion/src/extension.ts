@@ -192,6 +192,18 @@ class MagiPanel implements vscode.WebviewViewProvider {
 		.err { color: #ff2200 }
 		.warn { color: #ffaa00 }
 		.ok { color: #00ff88 }
+
+		.atf {
+			height: 3px;
+			background: linear-gradient(90deg, #00ff88, #00ffcc, #ffaa00, #00ffcc, #00ff88);
+			background-size: 200% 100%;
+			animation: atf 2s linear infinite;
+			margin: 8px 0;
+		}
+		@keyframes atf {
+			0% { background-position: 200% 0; }
+			100% { background-position: -200% 0; }
+		}
 		
 		</style>
 		</head>
@@ -199,6 +211,7 @@ class MagiPanel implements vscode.WebviewViewProvider {
 		<div class="hdr">NERV SYSTEM</div>
 		<div class="sub">SPECIAL AGENCY // MAGI INTERFACE</div>
 		<div class="ticker" id="clock">00:00:00</div>
+		<div class="atf"></div>
 		<div class="box">
 			<div class="box-lbl">MAGI SUPERCOMPUTER</div>
 			<div class="three-col">

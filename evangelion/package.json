@@ -32,7 +32,7 @@
         {
           "id": "nerv-panel",
           "title": "NERV",
-          "icon": "$(shield)"
+          "icon": "./icons/nerv.svg"
         }
       ]
     },
