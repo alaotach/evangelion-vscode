@@ -244,6 +244,10 @@ class MagiPanel implements vscode.WebviewViewProvider {
 				<span class="lbl">ACTIVE FILE</span>
 				<span class="ok" id="file">NONE</span>
 			</div>
+			<div class="stat-row">
+				<span class="label">SYNC RATE</span>
+				<span class="ok" id="sync">--.--%</span>
+			</div>
 		</div>
 		<div class="box log">
 			<div class="ticker">SYSTEM LOG</div>
@@ -258,6 +262,10 @@ class MagiPanel implements vscode.WebviewViewProvider {
 				const t = new Date().toLocaleTimeString('en-US', { hour12: false })
 				document.getElementById('clock').textContent = t
 			}, 1000)
+			setInterval(() => {
+				const sync = (70 + Math.random() * 30).toFixed(1);
+				document.getElementById('sync').textContent = sync + '%';
+			}, 3000);
 			const log = document.getElementById('log');
 			const maxll = 40;
 
