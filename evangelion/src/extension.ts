@@ -82,6 +82,54 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			font-family: 'Courier New', monospace;
 			margin: 0;
 			padding: 10px;
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+			box-sizing: border-box;
+			position: relative;
+			overflow: hidden;
+			animation: flick 0.16s infinite;
+		}
+		body::before {
+			content: '';
+			position: fixed;
+			top: 0; left:0;
+			width: 100%; height: 100%;
+			background: repeating-linear-gradient( 0deg, rgba(0, 255, 136, 0.04) 0px, rgba(0, 255, 136, 0.04) 1px, transparent 2px, transparent 4px),linear-gradient(	0deg, transparent 0%, rgba(255, 255, 255, 0.07) 48%, transparent 52%, transparent 100%);
+			pointer-events: none;
+			z-index: 999;
+			opacity: 0.55;
+			background-size: 100% 4px, 100% 180px;
+			animation: scan 6s linear infinite;
+		}
+		body::after {
+			content: '';
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			z-index: 998;
+			background: radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.35) 100%), rgba(0, 255, 136, 0.03);
+			mix-blend-mode: screen;
+			animation: pulse 3.8s ease-in-out infinite;
+		}
+		@keyframes scan {
+			0% { background-position: 0 0, 0 -180px; }
+			100% { background-position: 0 0, 0 180px; }
+		}
+		@keyframes flick {
+			0% { opacity: 0.98; }
+			4% { opacity: 0.96; }
+			8% { opacity: 0.99; }
+			15% { opacity: 0.94; }
+			20% { opacity: 1; }
+			55% { opacity: 0.97; }
+			80% { opacity: 0.95; }
+			100% { opacity: 0.98; }
+		}
+		@keyframes pulse {
+			0% { opacity: 0.35; }
+			50% { opacity: 0.5; }
+			100% { opacity: 0.35; }
 		}
 		.hdr {
 			text-align: center;
@@ -111,6 +159,9 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			border: 1px solid #003322;
 			padding: 6px 8px;
 			margin-top: 8px;
+		}
+		.log {
+			margin-top: auto;
 		}
 		.box-lbl {
 			color: #004433;
@@ -181,18 +232,47 @@ class MagiPanel implements vscode.WebviewViewProvider {
 				<span class="ok" id="file">NONE</span>
 			</div>
 		</div>
+		<div class="box log">
+			<div class="ticker">SYSTEM LOG</div>
+			<div id="log" style="height:120px; overflow-y:auto; font-size:10px; l-height:1.8;">
+				<div class="ok">NERV SYSTEM ONLINE</div>
+				<div class="ok">MAGI: ALL UNITS NOMINAL</div>
+			</div>
+		</div>
 
 		<script>
 			setInterval(() => {
 				const t = new Date().toLocaleTimeString('en-US', { hour12: false })
 				document.getElementById('clock').textContent = t
 			}, 1000)
+			const log = document.getElementById('log');
+			const maxll = 40;
+
+			function pushLog(level, text) {
+				const l = document.createElement('div');
+				l.className = level;
+				const ts = new Date().toLocaleTimeString('en-US', { hour12: false });
+				l.textContent = '[' + ts + '] ' + text;
+				log.appendChild(l);
+				while (log.children.length > maxll) {
+					log.removeChild(log.firstElementChild);
+				}
+				log.scrollTop = log.scrollHeight;
+			}
+
 			window.addEventListener('message', e => {
 				const msg = e.data;
 				if (msg.type === 'update') {
 					document.getElementById('errors').textContent = msg.errors;
 					document.getElementById('warnings').textContent = msg.warnings;
 					document.getElementById('file').textContent = msg.fileName || 'NONE';
+					if (msg.errors > 0) {
+						pushLog('err', ' ANGEL DETECTED IN ' + (msg.fileName || 'UNKNOWN'));
+					} else if (msg.warnings > 0) {
+						pushLog('warn', ' WARNING IN ' + (msg.fileName || 'UNKNOWN'));
+					} else {
+						pushLog('ok', ' ' + (msg.fileName || 'NONE') + ': NOMINAL');
+					}
 				}
 			});
 		</script>
