@@ -11,6 +11,10 @@ export function activate(ctx: vscode.ExtensionContext) {
 	SBI.text = '▸ MAGI: ALL UNITS NOMINAL';
 	SBI.color = '#00FFFF';
 	SBI.show();
+	const magiPanel = new MagiPanel();
+	ctx.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(MagiPanel.viewType, magiPanel)
+	);
 	const update = () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
@@ -41,6 +45,17 @@ export function activate(ctx: vscode.ExtensionContext) {
 		setTimeout(() => update(), 2000);
 	});
 	ctx.subscriptions.push(SBI);
+}
+
+class MagiPanel implements vscode.WebviewViewProvider {
+	public static readonly viewType = 'nerv-view';
+	private _view?: vscode.WebviewView;
+
+	resolveWebviewView(webviewView: vscode.WebviewView) {
+		this._view = webviewView;
+		webviewView.webview.options = {enableScripts: true};
+		webviewView.webview.html = '<h1>NERV</h1>';
+	}
 }
 
 // This method is called when your extension is deactivated

@@ -26,7 +26,26 @@
         "uiTheme": "vs-dark",
         "path": "./themes/nerv-dark.json"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "nerv-panel",
+          "title": "NERV",
+          "icon": "$(shield)"
+        }
+      ]
+    },
+    "views": {
+      "nerv-panel": [
+        {
+          "type": "webview",
+          "id": "nerv-view",
+          "icon": "$(terminal)",
+          "name": "MAGI TERMINAL"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
