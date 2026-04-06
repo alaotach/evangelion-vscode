@@ -12,6 +12,10 @@
   "activationEvents": [
     "*"
   ],
+  "galleryBanner": {
+    "color": "#000000",
+    "theme": "dark"
+  },
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

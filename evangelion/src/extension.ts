@@ -15,16 +15,36 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(MagiPanel.viewType, magiPanel)
 	);
+
+	let activeWelcomePanel: vscode.WebviewPanel | undefined;
+
 	const welcomeCommand = vscode.commands.registerCommand('evangelion.welcome', () => {
-		const panel = vscode.window.createWebviewPanel(
+		if (activeWelcomePanel) {
+			activeWelcomePanel.reveal(vscode.ViewColumn.One);
+			return;
+		}
+
+		activeWelcomePanel = vscode.window.createWebviewPanel(
 			'nervWelcome',
 			'NERV COMMAND CENTER',
 			vscode.ViewColumn.One,
-			{ enableScripts: true }
+			{ 
+				enableScripts: true,
+				localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'icons')]
+			}
 		);
-		panel.webview.html = getWelcomeHtml();
+
+		const bgUri = activeWelcomePanel.webview.asWebviewUri(
+			vscode.Uri.joinPath(context.extensionUri, 'icons', 'bg-video.mp4')
+		);
+		activeWelcomePanel.webview.html = getWelcomeHtml(bgUri.toString());
+
+		activeWelcomePanel.onDidDispose(() => {
+			activeWelcomePanel = undefined;
+		}, null, context.subscriptions);
 	});
 	context.subscriptions.push(welcomeCommand);
+
 	vscode.commands.executeCommand('evangelion.welcome');
 	vscode.commands.executeCommand('nerv-view.focus');
 	vscode.commands.executeCommand('workbench.action.closePanel');
@@ -525,53 +545,92 @@ class MagiPanel implements vscode.WebviewViewProvider {
 					alertBox.style.display = msg.errors > 0 ? 'block' : 'none';
 				}
 			});
-			
+
 		</script>
 		</body>
 		</html>`;
 	}
 }
 
-function getWelcomeHtml(): string {
+function getWelcomeHtml(bgUri: string): string {
 	return `<!DOCTYPE html>
-	<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>NERV COMMAND CENTER</title>
+		<html>
+		<head>
 		<style>
-			body {
-				margin: 0;
-				min-height: 100vh;
-				display: grid;
-				place-items: center;
-				background: var(--vscode-sideBar-background);
-				color: var(--vscode-terminal-ansiGreen);
-				font-family: 'Courier New', monospace;
-			}
-			.wrap {
-				text-align: center;
-				letter-spacing: 2px;
-			}
-			.title {
-				font-size: 28px;
-				font-weight: 700;
-				text-shadow: 0 0 16px var(--vscode-terminal-ansiGreen);
-			}
-			.sub {
-				margin-top: 8px;
-				font-size: 10px;
-				opacity: 0.8;
-			}
+		* { margin:0; padding:0; box-sizing:border-box; }
+		body {
+			background: #000000;
+			color: var(--vscode-editor-foreground);
+			font-family: 'Courier New', monospace;
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+		}
+		.logo {
+			position: relative;
+			z-index: 10;
+			font-size: 60px;
+			font-weight: bold;
+			letter-spacing: 20px;
+			text-shadow: 0 0 30px var(--vscode-editor-foreground);
+			opacity: 0;
+			animation: fadein 1s 0.5s forwards;
+		}
+		.tagline {
+			position: relative;
+			z-index: 10;
+			font-size: 12px;
+			letter-spacing: 6px;
+			color: var(--vscode-editor-foreground);
+			margin-top: 10px;
+			opacity: 0;
+			animation: fadein 1s 1.5s forwards;
+			filter: brightness(0.8);
+		}
+		.jp {
+			position: relative;
+			z-index: 10;
+			font-size: 10px;
+			letter-spacing: 4px;
+			color: var(--vscode-editor-foreground);
+			margin-top: 6px;
+			opacity: 0;
+			animation: fadein 1s 2s forwards;
+			filter: brightness(0.6);
+		}
+		@keyframes fadein {
+			from { opacity: 0; transform: translateY(10px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
 		</style>
-	</head>
-	<body>
-		<div class="wrap">
-			<div class="title">NERV COMMAND CENTER</div>
-			<div class="sub">MAGI SYSTEM LINK ESTABLISHED</div>
-		</div>
-	</body>
-	</html>`;
+		</head>
+		<body>
+		<video loop autoplay muted id="bg-video" style="position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:0;">
+		  <source src="${bgUri}" type="video/mp4">
+		</video>
+		<div class="logo">NERV</div>
+		<div class="tagline">GOD IS IN HIS HEAVEN. ALL IS RIGHT WITH THE WORLD.</div>
+		<div class="jp">特務機関ネルフ</div>
+		<script>
+			function hueChange() {
+				const theme = document.body.dataset.vscodeThemeName || document.body.dataset.vscodeThemeId || '';
+				const t = theme.toLowerCase();
+				let hue = 0;
+				if (t.includes('unit-01')) hue = 200;
+				else if (t.includes('unit-00')) hue = 140;
+				else if (t.includes('nerv')) hue = 90;
+				else if (t.includes('berserk') || t.includes('unit-02')) hue = 0;
+				document.getElementById('bg-video').style.filter = \`hue-rotate(\${hue}deg)\`;
+			}			
+			hueChange();
+			const obs = new MutationObserver(hueChange);
+			obs.observe(document.body, { attributes: true, attributeFilter: ['data-vscode-theme-name', 'data-vscode-theme-id', 'class'] });
+		</script>
+		</body>
+		</html>`;
 }
 
 // This method is called when your extension is deactivated
