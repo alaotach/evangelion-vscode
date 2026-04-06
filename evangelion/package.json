@@ -25,6 +25,11 @@
         "label": "NERV Dark",
         "uiTheme": "vs-dark",
         "path": "./themes/nerv-dark.json"
+      },
+      {
+        "label": "EVA Unit-01",
+        "uiTheme": "vs-dark",
+        "path": "./themes/eva-01.json"
       }
     ],
     "viewsContainers": {
