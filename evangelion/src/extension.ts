@@ -7,6 +7,11 @@ let SBI: vscode.StatusBarItem;
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	const savedTheme = context.globalState.get<string>('evangelion.selectedTheme');
+	if (savedTheme) {
+		vscode.workspace.getConfiguration().update('workbench.colorTheme', savedTheme, vscode.ConfigurationTarget.Global);
+	}
+
 	SBI = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000);
 	SBI.text = '▸ MAGI: ALL UNITS NOMINAL';
 	SBI.color = '#00FFFF';
@@ -122,6 +127,7 @@ class MagiPanel implements vscode.WebviewViewProvider {
 		
 		webviewView.webview.onDidReceiveMessage(message => {
 			if (message.type === 'setTheme') {
+				this._globalState.update('evangelion.selectedTheme', message.theme);
 				vscode.workspace.getConfiguration().update('workbench.colorTheme', message.theme, vscode.ConfigurationTarget.Global);
 			} else if (message.type === 'saveAudioState') {
 				this._globalState.update('magiPanel.audio', { playing: message.playing, volume: message.volume });
