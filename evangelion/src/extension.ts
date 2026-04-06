@@ -287,10 +287,76 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			50% { opacity: 0; }
 		}
 		#cursor { animation: blink 1s infinite; }
+
+		#boot-logo {
+			font-size: 28px;
+			font-weight: bold;
+			letter-spacing: 8px;
+			color: var(--vscode-terminal-ansiGreen);
+			text-shadow: 0 0 20px var(--vscode-terminal-ansiGreen);
+			opacity: 0;
+			transition: opacity 0.5s;
+			animation: bootlogo 1s ease-out forwards;
+		}
+		@keyframes bootlogo {
+			to { opacity: 1; }
+		}
+		.boot-sub {
+			font-size: 10px;
+			letter-spacing: 3px;
+			color: var(--vscode-sideBarTitle-foreground);
+			opacity: 0.6;
+			animation: bootsub 1s ease-out forwards;
+			animation-delay: 0.5s;
+		}
+		@keyframes bootsub {
+			to { opacity: 0.6; }
+		}
+
+		.boot-bar-wrap {
+		width: 80%;
+		height: 2px;
+		background: var(--vscode-sideBar-border);
+		margin-top: 10px;
+		}
+		#boot-bar {
+			height: 100%;
+			width: 0%;
+			background: var(--vscode-terminal-ansiGreen);
+			transition: width 0.1s;
+			box-shadow: 0 0 6px var(--vscode-terminal-ansiGreen);
+		}
+		#boot-text {
+			font-size: 8px;
+			letter-spacing: 2px;
+			color: var(--vscode-sideBarTitle-foreground);
+			opacity: 0.5;
+			margin-top: 6px;
+		}
+		#boot {
+			position: fixed;
+			top: 0; left: 0;
+			width: 100%; height: 100%;
+			background: var(--vscode-sideBar-background);
+			z-index: 9999;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: 8px;
+		}
 		
 		</style>
 		</head>
 		<body>
+		<div id="boot">
+		  <div id="boot-logo">NERV</div>
+		  <div class="boot-sub">特務機関ネルフ</div>
+		  <div id="boot-bar-wrap">
+		    <div id="boot-bar"></div>
+		  </div>
+		  <div id="boot-text">INITIALIZING...</div>
+		</div>
 		<div class="hex-bg"></div>
 		<div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-30deg); font-size:60px; color:rgba(128,128,128,0.03); font-weight:bold; letter-spacing:8px; pointer-events:none; z-index:0; white-space:nowrap;">NERV</div>
 		<div class="panel">
@@ -371,6 +437,32 @@ class MagiPanel implements vscode.WebviewViewProvider {
 		</div>
 
 		<script>
+			const boot = document.getElementById('boot');
+			const bootBar = document.getElementById('boot-bar');
+			const bootText = document.getElementById('boot-text');
+			const bootLogo = document.getElementById('boot-logo');
+			const bootMessages = ['MAGI SYSTEM ONLINE...', 'MELCHIOR: ONLINE', 'BALTHASAR: ONLINE',  'CASPER: ONLINE', 'AT FIELD: STABLE', 'PILOT SYNC: NOMINAL', 'NERV SYSTEM READY'];
+
+			let p = 0;
+			bootLogo.style.opacity = '1';
+			bootLogo.style.transition = 'opacity 0.5s';
+			const bootInterval = setInterval(() => {
+			  p += 14;
+			  bootBar.style.width = Math.min(p, 100) + '%';
+			  const msgIndex = Math.floor(p / 14) - 1;
+			  if (bootMessages[msgIndex]) {
+				bootText.textContent = bootMessages[msgIndex];
+			  }
+			  if (p >= 100) {
+				clearInterval(bootInterval);
+				setTimeout(() => {
+				  boot.style.transition = 'opacity 0.5s';
+				  boot.style.opacity = '0';
+				  setTimeout(() => boot.style.display = 'none', 500);
+				}, 300);
+			  }
+			}, 200);
+
 			setInterval(() => {
 				const t = new Date().toLocaleTimeString('en-US', { hour12: false })
 				document.getElementById('clock').textContent = t
