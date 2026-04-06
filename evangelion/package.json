@@ -18,6 +18,16 @@
   },
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Evangelion",
+      "properties": {
+        "evangelion.pilotName": {
+          "type": "string",
+          "default": "IKARI",
+          "description": "Your pilot designation"
+        }
+      }
+    },
     "commands": [
       {
         "command": "evangelion.welcome",

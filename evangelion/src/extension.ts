@@ -11,6 +11,15 @@ export function activate(context: vscode.ExtensionContext) {
 	SBI.text = '▸ MAGI: ALL UNITS NOMINAL';
 	SBI.color = '#00FFFF';
 	SBI.show();
+
+	const pilotBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+	const config = vscode.workspace.getConfiguration();
+	const pilotName = config.get('evangelion.pilotName', 'IKARI');
+	pilotBar.text = `$(shield) NERV  PILOT: ${pilotName}`;
+	pilotBar.color = '#ff6600';
+	pilotBar.show();
+	context.subscriptions.push(pilotBar);
+
 	const magiPanel = new MagiPanel();
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(MagiPanel.viewType, magiPanel)
