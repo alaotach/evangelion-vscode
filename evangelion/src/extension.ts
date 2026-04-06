@@ -577,7 +577,7 @@ function getWelcomeHtml(bgUri: string): string {
 			letter-spacing: 20px;
 			text-shadow: 0 0 30px var(--vscode-editor-foreground);
 			opacity: 0;
-			animation: fadein 1s 0.5s forwards;
+			animation: fadein 1s 3.5s forwards;
 		}
 		.tagline {
 			position: relative;
@@ -587,7 +587,7 @@ function getWelcomeHtml(bgUri: string): string {
 			color: var(--vscode-editor-foreground);
 			margin-top: 10px;
 			opacity: 0;
-			animation: fadein 1s 1.5s forwards;
+			animation: fadein 1s 4.5s forwards;
 			filter: brightness(0.8);
 		}
 		.jp {
@@ -598,23 +598,142 @@ function getWelcomeHtml(bgUri: string): string {
 			color: var(--vscode-editor-foreground);
 			margin-top: 6px;
 			opacity: 0;
-			animation: fadein 1s 2s forwards;
+			animation: fadein 1s 5s forwards;
 			filter: brightness(0.6);
 		}
 		@keyframes fadein {
 			from { opacity: 0; transform: translateY(10px); }
 			to { opacity: 1; transform: translateY(0); }
 		}
+		.corner {
+			position: absolute;
+			width: 60px;
+			height: 60px;
+			z-index: 5;
+			border: 3px solid var(--vscode-editor-foreground);
+			opacity: 0;
+			animation: fadein 1s 3.5s forwards;
+		}
+		.ctl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+		.ctr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+		.cbl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+		.cbr { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+		.tl-ind {
+			position: absolute;
+			top: 34px;
+			left: 40px;
+			z-index: 6;
+			color: var(--vscode-editor-foreground);
+			font-size: 12px;
+			letter-spacing: 4px;
+			font-weight: bold;
+			opacity: 0;
+			animation: fadein 1s 3.5s forwards, blink 2s infinite 4.5s;
+		}
+		@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+		.ticker-wrap {
+			position: absolute;
+			bottom: 30px;
+			left: 100px;
+			right: 100px;
+			z-index: 6;
+			overflow: hidden;
+			white-space: nowrap;
+			border-top: 1px solid var(--vscode-editor-foreground);
+			border-bottom: 1px solid var(--vscode-editor-foreground);
+			padding: 4px 0;
+			opacity: 0;
+			animation: fadein 1s 3.5s forwards;
+		}
+		.ticker {
+			display: inline-block;
+			color: var(--vscode-editor-foreground);
+			font-size: 10px;
+			letter-spacing: 4px;
+			animation: scroll 15s linear infinite;
+		}
+		@keyframes scroll {
+			0% { transform: translateX(100vw); }
+			100% { transform: translateX(-100%); }
+		}
+		#boot-term {
+			position: absolute;
+			top: 20%;
+			left: 10%;
+			z-index: 20;
+			font-size: 14px;
+			letter-spacing: 2px;
+			color: var(--vscode-editor-foreground);
+			font-weight: bold;
+			text-shadow: 0 0 5px var(--vscode-editor-foreground);
+		}
+		.boot-line {
+			margin: 8px 0;
+			opacity: 0;
+		}
+		#main-hud {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			opacity: 0;
+			transition: opacity 0.5s ease-in;
+		}
 		</style>
 		</head>
 		<body>
-		<video loop autoplay muted id="bg-video" style="position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:0;">
+		<video loop autoplay muted id="bg-video" style="position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:0; opacity:0; transition: opacity 2s;">
 		  <source src="${bgUri}" type="video/mp4">
 		</video>
-		<div class="logo">NERV</div>
-		<div class="tagline">GOD IS IN HIS HEAVEN. ALL IS RIGHT WITH THE WORLD.</div>
-		<div class="jp">特務機関ネルフ</div>
+		
+		<div id="boot-term"></div>
+
+		<div id="main-hud">
+			<div class="corner ctl"></div>
+			<div class="corner ctr"></div>
+			<div class="corner cbl"></div>
+			<div class="corner cbr"></div>
+			<div class="tl-ind">EVA: ACTIVE</div>
+			<div class="ticker-wrap">
+				<div class="ticker">使徒接近中 — ANGEL APPROACHING TOKYO-3 // ALERT STATE: CONDITION RED // ALL PILOTS REPORT TO CAGE // ATF BREACH DETECTED IN SECTOR 7 // 第3新東京市封鎖 — CITY LOCKDOWN INITIATED // EVANGELION UNITS SCRAMBLED //</div>
+			</div>
+			<div class="logo">NERV</div>
+			<div class="tagline">GOD IS IN HIS HEAVEN. ALL IS RIGHT WITH THE WORLD.</div>
+			<div class="jp">特務機関ネルフ</div>
+		</div>
 		<script>
+			const bootTerm = document.getElementById('boot-term');
+			const bootLines = [
+				'GEHIRN/NERV OS v7.3.2',
+				'MAGI-01 MELCHIOR......OK',
+				'MAGI-02 BALTHASAR.....OK',
+				'MAGI-03 CASPER........OK',
+				'使徒警戒レベル設定中',
+				'A.T.FIELD INTEGRITY...98.7%',
+				'EVA UNIT-01 CAGE......STANDBY',
+				'PILOT 001 IKARI.......LINKED',
+				'TOKYO-3 LOCKDOWN......ENGAGED',
+			];
+			let delay = 200;
+			bootLines.forEach((text, i) => {
+				setTimeout(() => {
+					const div = document.createElement('div');
+					div.className = 'boot-line';
+					div.textContent = text;
+					div.style.opacity = '1';
+					bootTerm.appendChild(div);
+				}, delay);
+				delay += 300 + Math.random() * 200;
+			});
+			setTimeout(() => {
+				bootTerm.style.display = 'none';
+				document.getElementById('main-hud').style.opacity = '1';
+				document.getElementById('bg-video').style.opacity = '1';
+			}, delay + 400);
+
 			function hueChange() {
 				const theme = document.body.dataset.vscodeThemeName || document.body.dataset.vscodeThemeId || '';
 				const t = theme.toLowerCase();
