@@ -6,10 +6,17 @@ let SBI: vscode.StatusBarItem;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 	const savedTheme = context.globalState.get<string>('evangelion.selectedTheme');
 	if (savedTheme) {
-		vscode.workspace.getConfiguration().update('workbench.colorTheme', savedTheme, vscode.ConfigurationTarget.Global);
+		await vscode.workspace.getConfiguration().update('workbench.colorTheme', undefined, vscode.ConfigurationTarget.Workspace);
+		
+		const current = vscode.workspace.getConfiguration().get('workbench.colorTheme');
+		if (current !== savedTheme) {
+			await vscode.workspace.getConfiguration().update('workbench.colorTheme', savedTheme, vscode.ConfigurationTarget.Global);
+		} else {
+			await vscode.workspace.getConfiguration().update('workbench.colorTheme', savedTheme, vscode.ConfigurationTarget.Workspace);
+		}
 	}
 
 	SBI = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000);
@@ -128,7 +135,9 @@ class MagiPanel implements vscode.WebviewViewProvider {
 		webviewView.webview.onDidReceiveMessage(message => {
 			if (message.type === 'setTheme') {
 				this._globalState.update('evangelion.selectedTheme', message.theme);
-				vscode.workspace.getConfiguration().update('workbench.colorTheme', message.theme, vscode.ConfigurationTarget.Global);
+				vscode.workspace.getConfiguration().update('workbench.colorTheme', undefined, vscode.ConfigurationTarget.Workspace).then(() => {
+					vscode.workspace.getConfiguration().update('workbench.colorTheme', message.theme, vscode.ConfigurationTarget.Global);
+				});
 			} else if (message.type === 'saveAudioState') {
 				this._globalState.update('magiPanel.audio', { playing: message.playing, volume: message.volume });
 			}
