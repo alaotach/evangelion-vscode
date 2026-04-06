@@ -90,6 +90,38 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			overflow: hidden;
 			animation: flick 0.16s infinite;
 		}
+		.hex-bg {
+			position: fixed;
+			top: 0; left: 0;
+			width: 100%; height: 100%;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill='none' stroke='%2300FF88' stroke-width='0.3' opacity='0.12'%3E%3Cpolygon points='14,1 27,8 27,22 14,29 1,22 1,8'/%3E%3Cpolygon points='14,29 27,36 27,50 14,57 1,50 1,36'/%3E%3C/g%3E%3C/svg%3E");
+			pointer-events: none;
+			z-index: 0;
+		}
+		.hdr {
+			position: relative;
+			text-align: center;
+			animation: glitch 6s infinite;
+		}
+		.hdr::before {
+			content: 'NERV SYSTEM';
+			position: absolute;
+			left: 0; right: 0;
+			color: #FF2200;
+			opacity: 0;
+			animation: glitch-red 6s infinite;
+		}
+		@keyframes glitch {
+			0%, 94%, 100% { transform: none; }
+			95% { transform: translateX(-2px); }
+			96% { transform: translateX(2px); }
+			97% { transform: none; }
+		}
+		@keyframes glitch-red {
+			0%, 94%, 100% { opacity: 0; }
+			95% { opacity: 0.5; transform: translateX(3px); }
+			97% { opacity: 0; }
+		}
 		body::before {
 			content: '';
 			position: fixed;
@@ -131,16 +163,6 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			50% { opacity: 0.5; }
 			100% { opacity: 0.35; }
 		}
-		.hdr {
-			text-align: center;
-			letter-spacing: 3px;
-			font-size: 13px;
-			font-weight: bold;
-			text-shadow: 0 0 8px #00ff88;
-			border-bottom: 1px solid #003322;
-			padding-bottom: 8px;
-			margin-bottom: 4px;
-		}
 		.sub {
 			text-align: center;
 			color: #004433;
@@ -156,12 +178,36 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			margin: 10px 0;
 		}
 		.box {
+			position: relative;
 			border: 1px solid #003322;
 			padding: 6px 8px;
 			margin-top: 8px;
 		}
+		.box::before {
+			content: '◤';
+			position: absolute;
+			top: -1px; left: -1px;
+			color: #00ff88;
+			font-size: 9px;
+			line-height: 1;
+		}
+		.box::after {
+			content: '◥';
+			position: absolute;
+			top: -1px; right: -1px;
+			color: #00FF88;
+			font-size: 9px;
+			line-height: 1;
+		}
 		.log {
 			margin-top: auto;
+		}
+		.panel {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			flex-direction: column;
+			min-height: 100%;
 		}
 		.box-lbl {
 			color: #004433;
@@ -178,6 +224,22 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			border: 1px solid #003322;
 			padding: 4px;
 			text-align: center;
+			position: relative;
+			overflow: hidden;
+		}
+		.node::after {
+			content: '';
+			position: absolute;
+			top: 0; left: -100%;
+			width: 100%; height: 100%;
+			background: linear-gradient(90deg, transparent, rgba(0,255,136,0.1), transparent);
+			animation: sweep 3s infinite;
+		}
+		.node:nth-child(2)::after { animation-delay: 1s; }
+		.node:nth-child(3)::after { animation-delay: 2s; }
+		@keyframes sweep {
+			0% { left: -100%; }
+			100% { left: 100%; }
 		}
 		.node-id { color: #004433; font-size: 8px }
 		.node-state { color: #00ff88; font-size: 9px }
@@ -204,14 +266,45 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			0% { background-position: 200% 0; }
 			100% { background-position: -200% 0; }
 		}
+		@keyframes alertblink {
+			0%, 100% { border-color: #FF2200; }
+			50% { border-color: transparent; }
+		}
+		.bin {
+			font-size: 7px;
+			color: #002222;
+			letter-spacing: 1px;
+			overflow: hidden;
+			white-space: nowrap;
+			animation: bin 12s linear infinite;
+		}
+		@keyframes bin {
+			0% { transform: translateX(100%); }
+			100% { transform: translateX(-100%); }
+		}
+		@keyframes blink {
+			0%, 100% { opacity: 1; }
+			50% { opacity: 0; }
+		}
+		#cursor { animation: blink 1s infinite; }
 		
 		</style>
 		</head>
 		<body>
+		<div class="hex-bg"></div>
+		<div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-30deg); font-size:60px; color:rgba(0,255,136,0.03); font-weight:bold; letter-spacing:8px; pointer-events:none; z-index:0; white-space:nowrap;">NERV</div>
+		<div class="panel">
 		<div class="hdr">NERV SYSTEM</div>
 		<div class="sub">SPECIAL AGENCY // MAGI INTERFACE</div>
+		<div style="text-align:center; color:#002222; font-size:8px; letter-spacing:1px; margin-top:-8px; margin-bottom:6px;">特務機関ネルフ — 人工進化研究所</div>
 		<div class="ticker" id="clock">00:00:00</div>
+		<div id="hex-counter" style="text-align:center; font-size:8px; color:#002222; letter-spacing:2px;">0x00000000</div>
 		<div class="atf"></div>
+		<div style="display:flex; justify-content:space-between; font-size:8px; margin-top:2px;">
+			<span style="color:#004433; letter-spacing:1px;">AT FIELD INTEGRITY</span>
+			<span style="color:#00FFCC;" id="atf-pct">100%</span>
+		</div>
+		<div class="bin">01001110 01000101 01010010 01010110 00100000 01010011 01011001 01010011</div>
 		<div class="box">
 			<div class="box-lbl">MAGI SUPERCOMPUTER</div>
 			<div class="three-col">
@@ -230,6 +323,11 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			</div>
 		</div>
 
+		<div id="alert-box" style="display:none; border:1px solid #FF2200; padding:4px 8px; background:rgba(255,34,0,0.05); animation:alertblink 1s infinite;">
+			<div style="color:#FF2200; font-size:9px; letter-spacing:2px; text-align:center; text-shadow:0 0 8px #FF2200;">⚠ 使徒検知 — ANGEL DETECTED ⚠</div>
+			<div style="color:#FF2200; font-size:7px; text-align:center; opacity:0.6;">警戒レベル: レッド — ALERT LEVEL: RED</div>
+		</div>
+
 		<div class="box">
 			<div class="box-lbl">UNIT STATUS</div>
 			<div class="row">
@@ -244,9 +342,22 @@ class MagiPanel implements vscode.WebviewViewProvider {
 				<span class="lbl">ACTIVE FILE</span>
 				<span class="ok" id="file">NONE</span>
 			</div>
-			<div class="stat-row">
-				<span class="label">SYNC RATE</span>
-				<span class="ok" id="sync">--.--%</span>
+			<div class="row" style="flex-direction:column; gap:3px;">
+				<div style="display:flex; justify-content:space-between;">
+					<span class="lbl">SYNC RATE</span>
+					<span class="ok" id="sync">--.--%</span>
+				</div>
+				<div style="height:3px; background:#001a0f; width:100%;">
+					<div id="sync-bar" style="height:100%; background:#00FF88; width:0%; transition:width 0.5s; box-shadow:0 0 6px #00FF88;"></div>
+				</div>
+			</div>
+			<div class="row">
+				<span class="lbl">PILOT</span>
+				<span class="ok">IKARI, S.</span>
+			</div>
+			<div class="row">
+				<span class="lbl">EVA UNIT</span>
+				<span class="ok">UNIT-01</span>
 			</div>
 		</div>
 		<div class="box log">
@@ -254,7 +365,9 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			<div id="log" style="height:120px; overflow-y:auto; font-size:10px; l-height:1.8;">
 				<div class="ok">NERV SYSTEM ONLINE</div>
 				<div class="ok">MAGI: ALL UNITS NOMINAL</div>
+				<div class="ok" id="cursor-line">// AWAITING INPUT<span id="cursor">_</span></div>
 			</div>
+		</div>
 		</div>
 
 		<script>
@@ -265,7 +378,16 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			setInterval(() => {
 				const sync = (70 + Math.random() * 30).toFixed(1);
 				document.getElementById('sync').textContent = sync + '%';
+				document.getElementById('sync-bar').style.width = sync + '%';
 			}, 3000);
+			setInterval(() => {
+				const hex = Math.floor(Math.random() * 0xFFFFFFFF).toString(16).toUpperCase().padStart(8, '0');
+				document.getElementById('hex-counter').textContent = '0x' + hex;
+			}, 500);
+			setInterval(() => {
+				const atf = (95 + Math.random() * 5).toFixed(0);
+				document.getElementById('atf-pct').textContent = atf + '%';
+			}, 4000);
 			const log = document.getElementById('log');
 			const maxll = 40;
 
@@ -294,6 +416,8 @@ class MagiPanel implements vscode.WebviewViewProvider {
 					} else {
 						pushLog('ok', ' ' + (msg.fileName || 'NONE') + ': NOMINAL');
 					}
+					const alertBox = document.getElementById('alert-box');
+					alertBox.style.display = msg.errors > 0 ? 'block' : 'none';
 				}
 			});
 		</script>
