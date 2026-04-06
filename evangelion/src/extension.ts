@@ -6,15 +6,28 @@ let SBI: vscode.StatusBarItem;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(ctx: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 	SBI = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000);
 	SBI.text = '▸ MAGI: ALL UNITS NOMINAL';
 	SBI.color = '#00FFFF';
 	SBI.show();
 	const magiPanel = new MagiPanel();
-	ctx.subscriptions.push(
+	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(MagiPanel.viewType, magiPanel)
 	);
+	const welcomeCommand = vscode.commands.registerCommand('evangelion.welcome', () => {
+		const panel = vscode.window.createWebviewPanel(
+			'nervWelcome',
+			'NERV COMMAND CENTER',
+			vscode.ViewColumn.One,
+			{ enableScripts: true }
+		);
+		panel.webview.html = getWelcomeHtml();
+	});
+	context.subscriptions.push(welcomeCommand);
+	vscode.commands.executeCommand('evangelion.welcome');
+	vscode.commands.executeCommand('nerv-view.focus');
+	vscode.commands.executeCommand('workbench.action.closePanel');
 	const update = () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
@@ -56,7 +69,7 @@ export function activate(ctx: vscode.ExtensionContext) {
 		});
 		setTimeout(() => update(), 2000);
 	});
-	ctx.subscriptions.push(SBI);
+	context.subscriptions.push(SBI);
 }
 
 class MagiPanel implements vscode.WebviewViewProvider {
@@ -517,6 +530,48 @@ class MagiPanel implements vscode.WebviewViewProvider {
 		</body>
 		</html>`;
 	}
+}
+
+function getWelcomeHtml(): string {
+	return `<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>NERV COMMAND CENTER</title>
+		<style>
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: grid;
+				place-items: center;
+				background: var(--vscode-sideBar-background);
+				color: var(--vscode-terminal-ansiGreen);
+				font-family: 'Courier New', monospace;
+			}
+			.wrap {
+				text-align: center;
+				letter-spacing: 2px;
+			}
+			.title {
+				font-size: 28px;
+				font-weight: 700;
+				text-shadow: 0 0 16px var(--vscode-terminal-ansiGreen);
+			}
+			.sub {
+				margin-top: 8px;
+				font-size: 10px;
+				opacity: 0.8;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<div class="title">NERV COMMAND CENTER</div>
+			<div class="sub">MAGI SYSTEM LINK ESTABLISHED</div>
+		</div>
+	</body>
+	</html>`;
 }
 
 // This method is called when your extension is deactivated

@@ -16,8 +16,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "evangelion.helloWorld",
-        "title": "Hello World"
+        "command": "evangelion.welcome",
+        "title": "NERV: Open Command Center"
       }
     ],
     "themes": [
