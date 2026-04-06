@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 	pilotBar.show();
 	context.subscriptions.push(pilotBar);
 
-	const magiPanel = new MagiPanel();
+	const magiPanel = new MagiPanel(context.extensionUri, context.globalState);
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(MagiPanel.viewType, magiPanel)
 	);
@@ -105,6 +105,8 @@ class MagiPanel implements vscode.WebviewViewProvider {
 	public static readonly viewType = 'nerv-view';
 	private _view?: vscode.WebviewView;
 
+	constructor(private readonly _extensionUri: vscode.Uri, private readonly _globalState: vscode.Memento) { }
+
 	public postMessage(msg: object) {
 		if (this._view) {
 			this._view.webview.postMessage(msg);
@@ -113,14 +115,32 @@ class MagiPanel implements vscode.WebviewViewProvider {
 
 	resolveWebviewView(webviewView: vscode.WebviewView) {
 		this._view = webviewView;
-		webviewView.webview.options = {enableScripts: true};
+		webviewView.webview.options = {
+			enableScripts: true,
+			localResourceRoots: [this._extensionUri]
+		};
+		
+		webviewView.webview.onDidReceiveMessage(message => {
+			if (message.type === 'setTheme') {
+				vscode.workspace.getConfiguration().update('workbench.colorTheme', message.theme, vscode.ConfigurationTarget.Global);
+			} else if (message.type === 'saveAudioState') {
+				this._globalState.update('magiPanel.audio', { playing: message.playing, volume: message.volume });
+			}
+		});
+
+		const audioConfig = this._globalState.get<{ playing: boolean; volume: number }>('magiPanel.audio', { playing: true, volume: 0.05 });
+
+		const audioUri = webviewView.webview.asWebviewUri(
+			vscode.Uri.joinPath(this._extensionUri, 'icons', "A Cruel Angel's Thesis - Instrumental (no backing vocals).mp3")
+		);
+
 		webviewView.webview.html = `<!DOCTYPE html>
 		<html>
 		<head>
 		<style>
 		body {
-			background: var(--vscode-sideBar-background)
-			color: var(--vscode-terminal-ansiGreen)
+			background: var(--vscode-sideBar-background);
+			color: var(--vscode-terminal-ansiGreen);
 			font-family: 'Courier New', monospace;
 			margin: 0;
 			padding: 10px;
@@ -256,6 +276,25 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			font-size: 9px;
 			letter-spacing: 2px;
 			margin-bottom: 6px;
+		}
+		.btn {
+			background: transparent;
+			border: 1px solid var(--vscode-terminal-ansiGreen);
+			color: var(--vscode-terminal-ansiGreen);
+			font-family: 'Courier New', monospace;
+			font-size: 9px;
+			padding: 4px;
+			cursor: pointer;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			transition: all 0.2s;
+			margin-bottom: 4px;
+			width: 100%;
+		}
+		.btn:hover {
+			background: var(--vscode-terminal-ansiGreen);
+			color: var(--vscode-sideBar-background);
+			box-shadow: 0 0 8px var(--vscode-terminal-ansiGreen);
 		}
 		.three-col {
 			display: grid;
@@ -468,6 +507,28 @@ class MagiPanel implements vscode.WebviewViewProvider {
 				<span class="ok" id="unit-display">UNIT-01</span>
 			</div>
 		</div>
+
+		<div class="box">
+			<div class="box-lbl">THEME SELECTOR</div>
+			<button class="btn" onclick="setTheme('NERV Dark')">NERV Dark</button>
+			<button class="btn" onclick="setTheme('EVA Unit-01')">EVA Unit-01</button>
+			<button class="btn" onclick="setTheme('EVA Unit-02')">EVA Unit-02</button>
+			<button class="btn" onclick="setTheme('EVA Unit-00')">EVA Unit-00</button>
+			<button class="btn" onclick="setTheme('Berserk Eclipse')">Berserk Eclipse</button>
+		</div>
+
+		<div class="box">
+			<div class="box-lbl">AUDIO SYSTEM</div>
+			<audio id="bgm" loop ${audioConfig.playing ? 'autoplay' : ''}>
+				<source src="${audioUri}" type="audio/mpeg">
+			</audio>
+			<button class="btn" id="audio-toggle" onclick="toggleAudio()" style="${audioConfig.playing ? 'background: var(--vscode-terminal-ansiGreen); color: var(--vscode-sideBar-background);' : 'background: transparent; color: var(--vscode-terminal-ansiGreen);'}">BGM: ${audioConfig.playing ? 'ON' : 'OFF'}</button>
+			<div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+				<span style="font-size: 9px; color: var(--vscode-terminal-ansiGreen);">VOL</span>
+				<input type="range" id="volume-slider" min="0" max="1" step="0.01" value="${audioConfig.volume}" style="flex: 1; accent-color: var(--vscode-terminal-ansiGreen); height: 2px; background: var(--vscode-sideBar-border); appearance: none; outline: none;">
+			</div>
+		</div>
+
 		<div class="box log">
 			<div class="ticker">SYSTEM LOG</div>
 			<div id="log" style="height:120px; overflow-y:auto; font-size:10px; l-height:1.8;">
@@ -479,6 +540,50 @@ class MagiPanel implements vscode.WebviewViewProvider {
 		</div>
 
 		<script>
+			const vscode = acquireVsCodeApi();
+			function setTheme(theme) {
+				vscode.postMessage({ type: 'setTheme', theme });
+			}
+			
+			const bgm = document.getElementById('bgm');
+			const audioToggle = document.getElementById('audio-toggle');
+			const volumeSlider = document.getElementById('volume-slider');
+			
+			bgm.volume = volumeSlider.value;
+			
+			function saveAudioState() {
+				vscode.postMessage({ type: 'saveAudioState', playing: !bgm.paused, volume: bgm.volume });
+			}
+
+			volumeSlider.addEventListener('input', (e) => {
+				bgm.volume = e.target.value;
+				saveAudioState();
+			});
+			
+			if (!bgm.paused || bgm.hasAttribute('autoplay')) {
+				bgm.play().catch(e => {
+					audioToggle.textContent = 'BGM: OFF';
+					audioToggle.style.background = 'transparent';
+					audioToggle.style.color = 'var(--vscode-terminal-ansiGreen)';
+					saveAudioState();
+				});
+			}
+			
+			function toggleAudio() {
+				if (bgm.paused) {
+					bgm.play();
+					audioToggle.textContent = 'BGM: ON';
+					audioToggle.style.background = 'var(--vscode-terminal-ansiGreen)';
+					audioToggle.style.color = 'var(--vscode-sideBar-background)';
+				} else {
+					bgm.pause();
+					audioToggle.textContent = 'BGM: OFF';
+					audioToggle.style.background = 'transparent';
+					audioToggle.style.color = 'var(--vscode-terminal-ansiGreen)';
+				}
+				saveAudioState();
+			}
+
 			const boot = document.getElementById('boot');
 			const bootBar = document.getElementById('boot-bar');
 			const bootText = document.getElementById('boot-text');
