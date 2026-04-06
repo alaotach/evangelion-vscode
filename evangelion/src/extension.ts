@@ -353,11 +353,11 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			</div>
 			<div class="row">
 				<span class="lbl">PILOT</span>
-				<span class="ok">IKARI, S.</span>
+				<span class="ok" id="pilot-display">IKARI, S.</span>
 			</div>
 			<div class="row">
 				<span class="lbl">EVA UNIT</span>
-				<span class="ok">UNIT-01</span>
+				<span class="ok" id="unit-display">UNIT-01</span>
 			</div>
 		</div>
 		<div class="box log">
@@ -420,6 +420,7 @@ class MagiPanel implements vscode.WebviewViewProvider {
 					alertBox.style.display = msg.errors > 0 ? 'block' : 'none';
 				}
 			});
+			
 		</script>
 		</body>
 		</html>`;
