@@ -35,6 +35,11 @@
         "label": "EVA Unit-02",
         "uiTheme": "vs-dark",
         "path": "./themes/eva-02.json"
+      },
+      {
+        "label": "EVA Unit-00",
+        "uiTheme": "vs-dark",
+        "path": "./themes/eva-00.json"
       }
     ],
     "viewsContainers": {

@@ -267,7 +267,7 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			100% { background-position: -200% 0; }
 		}
 		@keyframes alertblink {
-			0%, 100% { border-color: var(--vscode-terminal-ansiRed); }
+			0%, 100% { border-color: #FF2200; }
 			50% { border-color: transparent; }
 		}
 		.bin {
@@ -323,9 +323,9 @@ class MagiPanel implements vscode.WebviewViewProvider {
 			</div>
 		</div>
 
-		<div id="alert-box" style="display:none; border:1px solid var(--vscode-terminal-ansiRed); padding:4px 8px; background:rgba(255,34,0,0.05); animation:alertblink 1s infinite;">
-			<div style="color:var(--vscode-terminal-ansiRed); font-size:9px; letter-spacing:2px; text-align:center; text-shadow:0 0 8px var(--vscode-terminal-ansiRed);">⚠ 使徒検知 — ANGEL DETECTED ⚠</div>
-			<div style="color:var(--vscode-terminal-ansiRed); font-size:7px; text-align:center; opacity:0.6;">警戒レベル: レッド — ALERT LEVEL: RED</div>
+		<div id="alert-box" style="display:none; border:1px solid #FF2200; padding:4px 8px; background:rgba(255,34,0,0.05); animation:alertblink 1s infinite;">
+			<div style="color:#FF2200; font-size:9px; letter-spacing:2px; text-align:center; text-shadow:0 0 8px #FF2200;">⚠ 使徒検知 — ANGEL DETECTED ⚠</div>
+			<div style="color:#FF2200; font-size:7px; text-align:center; opacity:0.6;">警戒レベル: レッド — ALERT LEVEL: RED</div>
 		</div>
 
 		<div class="box">
