@@ -40,6 +40,11 @@
         "label": "EVA Unit-00",
         "uiTheme": "vs-dark",
         "path": "./themes/eva-00.json"
+      },
+      {
+        "label": "Berserk Eclipse",
+        "uiTheme": "vs-dark",
+        "path": "./themes/berserk.json"
       }
     ],
     "viewsContainers": {
